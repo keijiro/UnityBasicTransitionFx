@@ -1,18 +1,17 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-[ExecuteInEditMode]
 public class FadeToColor : MonoBehaviour
 {
     public Color color;
     public bool fadeIn;
-    public float duration = 0.01f;
+    public float duration = 1.0f;
 
     Material material;
     float opacity;
     float delta;
 
-	public void BeginFadeOut ()
+    public void BeginFadeOut ()
     {
         delta = 1.0f / duration;
         enabled = true;
@@ -48,46 +47,32 @@ public class FadeToColor : MonoBehaviour
         BeginFadeIn (time);
     }
 
-    void SetUpMaterial ()
+    void Awake ()
     {
-        if (material == null)
-        {
-            material = new Material (Shader.Find ("Hidden/FadeToColor"));
-            material.hideFlags = HideFlags.DontSave;
-            opacity = (fadeIn && Application.isPlaying) ? 1.0f : 0.0f;
-        }
-    }
+        material = new Material (Shader.Find ("Hidden/FadeToColor"));
 
-    void Start ()
-    {
-        if (Application.isPlaying)
+        if (fadeIn)
         {
-            if (fadeIn)
-                delta = -1.0f / duration;
-            else
-                enabled = false;
+            opacity = 1.0f;
+            delta = -1.0f / duration;
+        }
+        else
+        {
+            opacity = 0.0f;
+            enabled = false;
         }
     }
 
     void Update ()
     {
-        SetUpMaterial ();
-
-        if (Application.isPlaying)
-        {
-            opacity = Mathf.Clamp01 (opacity + delta * Time.deltaTime);
-            if (opacity == 0.0f)
-                enabled = false;
-        }
+        opacity = Mathf.Clamp01 (opacity + delta * Time.deltaTime);
+        if (opacity == 0.0f) enabled = false;
     }
 
     void OnRenderImage (RenderTexture source, RenderTexture destination)
     {
-        SetUpMaterial ();
-
         material.color = color;
         material.SetFloat ("_Opacity", opacity);
-
         Graphics.Blit (source, destination, material);
     }
 }
